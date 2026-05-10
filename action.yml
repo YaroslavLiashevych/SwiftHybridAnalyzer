@@ -16,11 +16,13 @@ runs:
   steps:
     - name: 'Run Analyzer'
       shell: bash
+      env:
+        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Це прибере твоє попередження про Node.js
       run: |
-        # Важливо: використовуємо github.action_path, щоб знайти папку Analyzer
+        # Переходимо в папку самого екшена, де лежить Package.swift
         cd "${{ github.action_path }}/Analyzer"
         
-        # Запускаємо аналізатор, вказуючи повний шлях до цільового файлу
+        # Запускаємо аналізатор, вказуючи повний шлях до файлу в проєкті
         swift run Analyzer "${{ github.workspace }}/${{ inputs.file-path }}" \
           --api-key "${{ inputs.api-key }}" \
           --output "${{ github.workspace }}/${{ inputs.output-path }}"
