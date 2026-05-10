@@ -2,7 +2,7 @@ name: 'Swift Hybrid Analyzer'
 description: 'Гібридний аналіз Swift-коду (AST + LLM)'
 inputs:
   file-path:
-    description: 'Шлях до файлу для аналізу (відносно кореня)'
+    description: 'Шлях до файлу для аналізу'
     required: true
   api-key:
     description: 'API ключ для LLM'
@@ -10,14 +10,17 @@ inputs:
   output-path:
     description: 'Шлях для збереження звіту'
     required: false
-    default: 'analyzer-report.json'
+    default: 'report.json'
 runs:
   using: 'composite'
   steps:
     - name: 'Run Analyzer'
       shell: bash
       run: |
-        # Заходимо в папку з Swift-проєктом
-        cd Analyzer
-        # Запускаємо аналізатор, звертаючись до файлу на рівень вище (../)
-        swift run Analyzer "../${{ inputs.file-path }}" --api-key "${{ inputs.api-key }}" --output "../${{ inputs.output-path }}"
+        # Важливо: використовуємо github.action_path, щоб знайти папку Analyzer
+        cd "${{ github.action_path }}/Analyzer"
+        
+        # Запускаємо аналізатор, вказуючи повний шлях до цільового файлу
+        swift run Analyzer "${{ github.workspace }}/${{ inputs.file-path }}" \
+          --api-key "${{ inputs.api-key }}" \
+          --output "${{ github.workspace }}/${{ inputs.output-path }}"
