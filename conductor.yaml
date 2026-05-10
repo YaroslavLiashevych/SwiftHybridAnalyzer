@@ -4,7 +4,8 @@ description: "Експертний інструмент для аналізу Sw
 tools:
   - name: analyze_code
     description: "Запускає гібридний аналіз Swift файлу та зберігає звіт у JSON"
-    # ДОДАЄМО --package-path, щоб swift знайшов твій Analyzer всередині tool-repo
+    # ./tool-repo/Analyzer — це шлях до папки з Package.swift
+    # Analyzer — це назва твого виконуваного файлу (target)
     command: "swift run --package-path ./tool-repo/Analyzer Analyzer {{file_path}} --api-key {{api_key}} --output report.json"
     inputs:
       - name: file_path
