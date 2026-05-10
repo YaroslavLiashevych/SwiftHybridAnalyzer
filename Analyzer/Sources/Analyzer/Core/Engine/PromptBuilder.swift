@@ -7,13 +7,13 @@
 
 import Foundation
 
-/// Сервіс для генерації контекстуальних запитів (prompts) до LLM.
-/// Реалізує другий рівень гібридного аналізу коду[cite: 106].
+/// Сервіс для генерації prompts до LLM.
+/// Реалізує другий рівень гібридного аналізу коду.
 struct PromptBuilder {
 
     // MARK: - Persona & Rules
 
-    /// Набір інструкцій, що визначають поведінку ШІ як Senior iOS розробника[cite: 103].
+    /// Набір інструкцій.
     private static var personaInstructions: String {
         return """
         ТВОЯ РОЛЬ:
@@ -31,10 +31,10 @@ struct PromptBuilder {
 
     // MARK: - Builder Logic
 
-    /// Генерує фінальний промпт на основі даних від детермінованого аналізатора[cite: 107].
+    /// Генерує фінальний промпт на основі даних від  аналізатора.
     static func build(from payload: AIPayload) -> String {
 
-        // Формуємо список помилок, знайдених на першому етапі (AST)
+        // Формуємо список помилок, знайдених на першому етапі
         let issuesList = payload.issues.isEmpty
             ? "Критичних синтаксичних та структурних порушень не виявлено."
             : payload.issues.map { issue in

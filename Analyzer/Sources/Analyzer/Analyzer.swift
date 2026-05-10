@@ -21,7 +21,7 @@ struct AnalyzerCommand: AsyncParsableCommand {
         do {
             let dispatcher = try HybridDispatcher(filePath: filePath)
             var payload = dispatcher.analyzeAndPreparePayload()
-            
+
             // Якщо є ключ, отримуємо AI Review
             if let key = apiKey {
                 print("🚀 Запит до LLM (Level 2)...")
@@ -30,25 +30,35 @@ struct AnalyzerCommand: AsyncParsableCommand {
                 // 1. Отримуємо відповідь як рядок
                 let rawReviewString = try await llmClient.sendReviewRequest(prompt: PromptBuilder.build(from: payload))
 
-                // 2. Спробуємо перетворити цей рядок (JSON) у наш об'єкт AIReviewResponse
-                if let jsonData = rawReviewString.data(using: .utf8) {
+                // 2. Очищення відповіді (Витягуємо лише JSON від { до })
+                // Це рятує парсер, якщо ШІ додав Markdown (```json) або зайвий текст
+                var cleanedString = rawReviewString
+                if let startIndex = cleanedString.firstIndex(of: "{"),
+                   let endIndex = cleanedString.lastIndex(of: "}") {
+                    cleanedString = String(cleanedString[startIndex...endIndex])
+                }
+
+                // Виводимо в консоль для дебагу
+                print("📦 Очищений JSON для парсингу: \n\(cleanedString)\n")
+
+                // 3. Спробуємо перетворити очищений рядок (JSON) у наш об'єкт AIReviewResponse
+                if let jsonData = cleanedString.data(using: .utf8) {
                     do {
                         let decodedReview = try JSONDecoder().decode(AIReviewResponse.self, from: jsonData)
-                        payload.aiReview = decodedReview // Тепер це об'єкт, а не текст!
+                        payload.aiReview = decodedReview // Тепер це об'єкт, а не текст
                         print("✅ AI Review успішно деserialized.")
                     } catch {
                         print("⚠️ Помилка парсингу JSON від ШІ: \(error.localizedDescription)")
-                        // Якщо ШІ видав кривий JSON, можна зберегти хоча б summary або лог
                     }
                 }
             }
 
-            // Формуємо JSON
+            // Формуємо фінальний JSON для Action
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
             let jsonData = try encoder.encode(payload)
 
-            // ЛОГІКА ЗБЕРЕЖЕННЯ
+            // Логіка збереження
             if let outputPath = output {
                 let fileURL = URL(fileURLWithPath: outputPath)
                 try jsonData.write(to: fileURL)

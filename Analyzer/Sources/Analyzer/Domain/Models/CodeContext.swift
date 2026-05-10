@@ -15,6 +15,6 @@ struct EnhancedCodeContext: Codable {
     let startLine: Int
     let complexityScore: Int
     let attributes: [String]
-    let accessLevel: String   // Нове: public, private, internal
-    let parentEntity: String? // Нове: назва класу/структури, де лежить функція
+    let accessLevel: String
+    let parentEntity: String? 
 }

@@ -31,7 +31,7 @@ class MemorySafetyVisitor: SyntaxVisitor {
 
         let hasWeakOrUnowned = captureText.contains("weak") || captureText.contains("unowned")
 
-        // ЯКЩО 'self' використовується, АЛЕ немає 'weak' чи 'unowned' -> Це потенційний витік пам'яті!
+        // ЯКЩО 'self' використовується, АЛЕ немає 'weak' чи 'unowned' - це потенційний витік пам'яті
         if usesSelf && !hasWeakOrUnowned {
             let startLoc = node.startLocation(converter: converter)
 
@@ -43,7 +43,6 @@ class MemorySafetyVisitor: SyntaxVisitor {
             detectedIssues.append(issue)
         }
 
-        // ВИПРАВЛЕНО ТУТ:
         return .visitChildren
     }
 }

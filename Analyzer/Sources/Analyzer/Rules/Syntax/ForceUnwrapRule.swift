@@ -17,7 +17,6 @@ class ForceUnwrapVisitor: SyntaxVisitor {
     }
 
     // 1. Шукаємо примусове розгортання (наприклад: user!)
-    // ВИПРАВЛЕНО: Використовуємо ForceUnwrapExprSyntax
     override func visit(_ node: ForceUnwrapExprSyntax) -> SyntaxVisitorContinueKind {
         let startLoc = node.startLocation(converter: converter)
         // Витягуємо назву змінної, до якої застосовано '!'

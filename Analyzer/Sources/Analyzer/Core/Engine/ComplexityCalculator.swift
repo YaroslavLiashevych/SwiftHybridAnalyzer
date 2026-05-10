@@ -10,7 +10,7 @@ import SwiftSyntax
 
 struct ComplexityCalculator {
 
-    /// Розраховує цикломатичну складність (Cyclomatic Complexity).
+    /// Розраховує цикломатичну складність.
     /// Визначає кількість лінійно незалежних маршрутів через програмний код.
     static func calculate(for body: CodeBlockSyntax?) -> Int {
         guard let body = body else { return 1 }

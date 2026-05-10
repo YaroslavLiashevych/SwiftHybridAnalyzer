@@ -16,14 +16,14 @@ class SwiftUIVisitor: SyntaxVisitor {
         super.init(viewMode: .all)
     }
 
-    // Шукаємо декларації КЛАСІВ
+    // Шукаємо декларації класів
     override func visit(_ node: ClassDeclSyntax) -> SyntaxVisitorContinueKind {
         let className = node.name.text
 
         // Перевіряємо всі властивості (змінні) всередині класу
         for member in node.memberBlock.members {
             if let varDecl = member.decl.as(VariableDeclSyntax.self) {
-                // Чи є у цієї змінної атрибут @State?
+                // Перевіряємо чи є у цієї змінної атрибут @State
                 let hasStateAttribute = varDecl.attributes.contains { attr in
                     attr.description.contains("@State")
                 }

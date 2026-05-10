@@ -43,7 +43,7 @@ class BaseASTVisitor: SyntaxVisitor {
             $0.description.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
-        // ВИКЛИК НОВОГО СЕРВІСУ МЕТРИК
+        // Виклик сервісу метрик
         let complexity = ComplexityCalculator.calculate(for: node.body)
 
         let context = EnhancedCodeContext(
@@ -52,7 +52,7 @@ class BaseASTVisitor: SyntaxVisitor {
             entityType: "Function",
             sourceCode: node.description.trimmingCharacters(in: .whitespacesAndNewlines),
             startLine: startLoc.line,
-            complexityScore: complexity, // Передаємо результат
+            complexityScore: complexity, 
             attributes: attributes,
             accessLevel: accessLevel,
             parentEntity: parentName
@@ -61,6 +61,4 @@ class BaseASTVisitor: SyntaxVisitor {
         detectedContexts.append(context)
         return .skipChildren
     }
-
-    // ЗВЕРНИ УВАГУ: Ми повністю видалили метод calculateComplexity звідси!
 }
