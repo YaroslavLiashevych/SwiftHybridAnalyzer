@@ -9,13 +9,27 @@ import Foundation
 import SwiftSyntax
 import SwiftParser
 
+// Додай ці структури в MasterProject
+struct AISuggestion: Codable {
+    let line: Int
+    let issue_type: String
+    let explanation: String
+    let original_code: String
+    let fixed_code: String
+}
+
+struct AIReviewResponse: Codable {
+    let summary: String
+    let suggestions: [AISuggestion]
+}
+
 // Фінальна модель для відправки до ШІ
 struct AIPayload: Codable {
     let analyzedFile: String
     let contexts: [EnhancedCodeContext]
     let totalIssuesFound: Int
     let issues: [CodeIssue]
-    var aiReview: String? // Нове поле для вердикту ШІ
+    var aiReview: AIReviewResponse? // Нове поле для вердикту ШІ
 }
 
 class HybridDispatcher {

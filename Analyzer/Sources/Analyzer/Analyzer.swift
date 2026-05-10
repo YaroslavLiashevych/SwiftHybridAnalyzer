@@ -21,14 +21,26 @@ struct AnalyzerCommand: AsyncParsableCommand {
         do {
             let dispatcher = try HybridDispatcher(filePath: filePath)
             var payload = dispatcher.analyzeAndPreparePayload()
-
+            
             // Якщо є ключ, отримуємо AI Review
             if let key = apiKey {
                 print("🚀 Запит до LLM (Level 2)...")
                 let llmClient = LLMClient(apiKey: key)
-                let review = try await llmClient.sendReviewRequest(prompt: PromptBuilder.build(from: payload))
-                payload.aiReview = review
-                print("✅ AI Review отримано.")
+
+                // 1. Отримуємо відповідь як рядок
+                let rawReviewString = try await llmClient.sendReviewRequest(prompt: PromptBuilder.build(from: payload))
+
+                // 2. Спробуємо перетворити цей рядок (JSON) у наш об'єкт AIReviewResponse
+                if let jsonData = rawReviewString.data(using: .utf8) {
+                    do {
+                        let decodedReview = try JSONDecoder().decode(AIReviewResponse.self, from: jsonData)
+                        payload.aiReview = decodedReview // Тепер це об'єкт, а не текст!
+                        print("✅ AI Review успішно деserialized.")
+                    } catch {
+                        print("⚠️ Помилка парсингу JSON від ШІ: \(error.localizedDescription)")
+                        // Якщо ШІ видав кривий JSON, можна зберегти хоча б summary або лог
+                    }
+                }
             }
 
             // Формуємо JSON
