@@ -1,0 +1,31 @@
+{
+  "issues" : [
+    {
+      "issueType" : "Memory Leak (ARC)",
+      "description" : "Знайдено делегат ('delegate') без ключового слова 'weak'. Це класична причина сильних циклічних посилань (Retain Cycle). Завжди оголошуйте делегати як 'weak var'.",
+      "line" : 10
+    },
+    {
+      "issueType" : "Security",
+      "description" : "Критично: Знайдено хардкод конфіденційних даних у змінній 'apiToken'. Використовуйте Keychain або змінні середовища для зберігання секретів.",
+      "line" : 13
+    }
+  ],
+  "analyzedFile" : "TestFile.swift",
+  "aiReview" : "🤖 [MOCK]: Система готова. Для реального аналізу вкажіть дійсний gsk-ключ.",
+  "contexts" : [
+    {
+      "entityType" : "Function",
+      "entityName" : "didFinish",
+      "accessLevel" : "internal",
+      "sourceCode" : "func didFinish()",
+      "attributes" : [
+
+      ],
+      "fileName" : "TestFile.swift",
+      "complexityScore" : 1,
+      "startLine" : 5
+    }
+  ],
+  "totalIssuesFound" : 2
+}

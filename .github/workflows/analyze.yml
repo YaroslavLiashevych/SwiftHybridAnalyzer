@@ -1,0 +1,32 @@
+name: Code Review
+
+on:
+  pull_request:
+    paths:
+      - '**.swift' # Запускати тільки якщо змінено Swift-файли
+
+jobs:
+  analyze:
+    [cite_start]runs-on: macos-latest # Оскільки потрібен Swift та Xcode [cite: 81]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Потрібно для аналізу змін
+
+      - name: Build Analyzer
+        run: swift build -c release
+
+      - name: Run Hybrid Analysis
+        uses: ./. # Використовуємо наш локальний action.yml
+        with:
+          file-path: 'Sources/Analyzer/main.swift' # Поки що для тесту
+          api-key: ${{ secrets.GROQ_API_KEY }}
+          output-path: 'report.json'
+
+      - name: Upload Report
+        uses: actions/uploa d-artifact@v4
+        with:
+          name: analyzer-report
+          path: report.json
