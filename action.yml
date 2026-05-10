@@ -2,13 +2,13 @@ name: 'Swift Hybrid Analyzer'
 description: 'Гібридний аналіз Swift-коду (AST + LLM)'
 inputs:
   file-path:
-    description: 'Шлях до файлу для аналізу'
+    description: 'Шлях до файлу для аналізу (відносно кореня)'
     required: true
   api-key:
-    description: 'API ключ для LLM (Groq/OpenAI)'
+    description: 'API ключ для LLM'
     required: true
   output-path:
-    description: 'Шлях для збереження JSON-звіту'
+    description: 'Шлях для збереження звіту'
     required: false
     default: 'analyzer-report.json'
 runs:
@@ -17,4 +17,7 @@ runs:
     - name: 'Run Analyzer'
       shell: bash
       run: |
-        swift run Analyzer "${{ inputs.file-path }}" --api-key "${{ inputs.api-key }}" --output "${{ inputs.output-path }}"
+        # Заходимо в папку з Swift-проєктом
+        cd Analyzer
+        # Запускаємо аналізатор, звертаючись до файлу на рівень вище (../)
+        swift run Analyzer "../${{ inputs.file-path }}" --api-key "${{ inputs.api-key }}" --output "../${{ inputs.output-path }}"
