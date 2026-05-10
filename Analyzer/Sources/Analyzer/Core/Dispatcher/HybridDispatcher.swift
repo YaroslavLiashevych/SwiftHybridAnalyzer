@@ -23,11 +23,11 @@ class HybridDispatcher {
 
     /// Крок 1: Збір даних за допомогою статичного аналізу (AST)
     func analyzeAndPreparePayload() -> AIPayload {
-        // 1. Збір семантичного контексту (структура класів, методів тощо)
+        // 1. Збір семантичного контексту
         let contextVisitor = BaseASTVisitor(fileName: fileURL.lastPathComponent, converter: converter)
         contextVisitor.walk(sourceFile)
 
-        // 2. Ініціалізація всіх правил аналізу
+        // 2. Ініціалізація правил
         let memoryVisitor = MemorySafetyVisitor(converter: converter)
         let swiftUIVisitor = SwiftUIVisitor(converter: converter)
         let forceUnwrapVisitor = ForceUnwrapVisitor(converter: converter)
@@ -39,7 +39,6 @@ class HybridDispatcher {
         let delegateVisitor = DelegateVisitor(converter: converter)
         let secretVisitor = SecretVisitor(converter: converter)
 
-        // 3. Запуск обходу дерева коду
         let visitors: [SyntaxVisitor] = [
             memoryVisitor, swiftUIVisitor, forceUnwrapVisitor, emptyCatchVisitor,
             magicNumberVisitor, printVisitor, massiveClassVisitor, localizationVisitor,
@@ -50,7 +49,7 @@ class HybridDispatcher {
             visitor.walk(sourceFile)
         }
 
-        // 4. Агрегація знайдених "зачіпок" для ШІ
+        // 3. Агрегація знайдених зауважень
         var allIssues: [CodeIssue] = []
         allIssues.append(contentsOf: memoryVisitor.detectedIssues)
         allIssues.append(contentsOf: swiftUIVisitor.detectedIssues)
@@ -75,27 +74,35 @@ class HybridDispatcher {
     static func cleanJSONResponse(_ rawResponse: String) -> String {
         var cleaned = rawResponse
 
-        // 1. Видаляємо Markdown-обгортки ```json ... ``` якщо вони є
-        if cleaned.contains("```json") {
-            cleaned = cleaned.components(separatedBy: "```json").last ?? cleaned
-            cleaned = cleaned.components(separatedBy: "```").first ?? cleaned
+        // 1. Видаляємо Markdown-обгортки ```json ... ```
+        if cleaned.contains("```") {
+            let components = cleaned.components(separatedBy: "```")
+            for component in components {
+                if component.contains("{") && component.contains("}") {
+                    cleaned = component.replacingOccurrences(of: "json", with: "")
+                    break
+                }
+            }
         }
 
         // 2. Знаходимо межі JSON (від першої { до останньої })
-        // Це відсікає будь-який зайвий текст від ШІ на початку або в кінці
         if let firstBrace = cleaned.firstIndex(of: "{"),
            let lastBrace = cleaned.lastIndex(of: "}") {
             cleaned = String(cleaned[firstBrace...lastBrace])
         }
 
-        // 3. ВИПРАВЛЕННЯ ЕКРАНУВАННЯ:
-        // ШІ часто помиляється і пише \(variable) всередині JSON-рядка.
-        // Це ламає парсер. Нам потрібно замінити \( на \\(
-        // Але спочатку перевіряємо, чи воно вже не екрановане
-        cleaned = cleaned.replacingOccurrences(of: "\\(", with: "\\\\(")
+        // 3. ВИПРАВЛЕННЯ ЕКРАНУВАННЯ (Regex):
+        // Замінюємо поодинокі бекслеші перед дужкою \( на подвійні \\(
+        // Це критично для валідності JSON при передачі Swift-інтерполяції.
+        let pattern = #"(?<!\\)\\\("#
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
+            let range = NSRange(cleaned.startIndex..., in: cleaned)
+            cleaned = regex.stringByReplacingMatches(in: cleaned, options: [], range: range, withTemplate: #"\\\\("#)
+        }
 
-        // Видаляємо можливі дубльовані бекслеші, які могли виникнути при подвійному фіксі
-        cleaned = cleaned.replacingOccurrences(of: "\\\\\\(", with: "\\\\(")
+        // Видаляємо можливі невалідні переноси рядків всередині значень (якщо вони не екрановані)
+        // Примітка: Ми не видаляємо всі \n, а лише ті, що можуть зламати структуру.
+        // Але оскільки ми просимо ШІ використовувати \n, тут краще просто обрізати зайве по краях.
 
         return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
     }
